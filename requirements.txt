@@ -1,0 +1,6 @@
+fastapi
+uvicorn
+psola
+numpy
+soundfile
+pypinyin

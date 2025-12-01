@@ -1,0 +1,6 @@
+{
+	"sourceDirectory": "./data/sources/",
+	"ysddSourceDirectory": "./data/ysddSources/",
+	"dictFile": "./data/dictionary.json",
+	"ysddTableFile": "./data/ysddTable.json"
+}

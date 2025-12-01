@@ -1,0 +1,61 @@
+from fastapi import APIRouter, HTTPException
+from fastapi.responses import StreamingResponse
+from app.models.tts import TTSRequest
+from app.core.tts_engine import TTSEngine
+import io
+import soundfile as sf
+
+router = APIRouter()
+
+# Initialize the engine. 
+# Note: This assumes the application is run from the project root.
+try:
+    tts_engine = TTSEngine()
+except Exception as e:
+    print(f"Failed to initialize TTS Engine: {e}")
+    tts_engine = None
+
+def _generate_response(request: TTSRequest):
+    if tts_engine is None:
+        raise HTTPException(status_code=500, detail="TTS Engine not initialized")
+        
+    try:
+        audio_data, sample_rate = tts_engine.generate_audio_data(
+            request.text,
+            request.inYsddMode,
+            request.pitchMult,
+            request.speedMult,
+            request.norm,
+            request.reverse
+        )
+        
+        buffer = io.BytesIO()
+        sf.write(buffer, audio_data, sample_rate, format='WAV')
+        buffer.seek(0)
+        
+        return StreamingResponse(buffer, media_type="audio/wav")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/generate")
+async def generate_audio(request: TTSRequest):
+    return _generate_response(request)
+
+@router.get("/generate")
+async def generate_audio_get(
+    text: str,
+    inYsddMode: bool = True,
+    pitchMult: float = 1.0,
+    speedMult: float = 1.0,
+    norm: bool = False,
+    reverse: bool = False
+):
+    request = TTSRequest(
+        text=text,
+        inYsddMode=inYsddMode,
+        pitchMult=pitchMult,
+        speedMult=speedMult,
+        norm=norm,
+        reverse=reverse
+    )
+    return _generate_response(request)

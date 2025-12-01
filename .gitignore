@@ -1,0 +1,42 @@
+# Python & System
+__pycache__/
+*.py[cod]
+*$py.class
+.DS_Store
+.vscode/
+.idea/
+
+# Virtual Environment
+.venv/
+venv/
+env/
+
+# Distribution / Packaging
+build/
+dist/
+*.egg-info/
+
+# Temporary Output
+HZYSTempOutput/
+/Output.wav
+/temp.wav
+
+# Project Specific
+# Ignore root level wavs (outputs), but keep data/
+/*.wav
+
+# Ignore text input for testing
+textToRead.txt
+
+# Executables (legacy or future)
+excutables/
+*.exe
+*.bin
+*.zip
+
+# Notebooks
+*.ipynb
+
+# Media
+*.flv
+*.mp4
