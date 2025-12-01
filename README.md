@@ -36,9 +36,9 @@ uv run uvicorn app.main:app --reload
 
 启动服务后，访问 `http://localhost:8000/docs` 查看交互式 API 文档。
 
-### 生成音频
+### 生成音频 (Otto)
 
-**POST** `/api/v1/generate`
+**POST** `/api/v1/generate/otto`
 
 Request Body:
 ```json
@@ -52,4 +52,10 @@ Request Body:
 }
 ```
 
-Response: Audio file (WAV)
+**GET** `/api/v1/generate/otto?text=我是你跌`
+
+### 生成音频 (Manbo)
+
+**GET** `/api/v1/generate/manbo?text=测试`
+
+Response: Audio file (WAV/MP3)

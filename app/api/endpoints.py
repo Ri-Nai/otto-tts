@@ -4,6 +4,7 @@ from app.models.tts import TTSRequest
 from app.core.tts_engine import TTSEngine
 import io
 import soundfile as sf
+import httpx
 
 router = APIRouter()
 
@@ -37,11 +38,11 @@ def _generate_response(request: TTSRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/generate")
+@router.post("/generate/otto")
 async def generate_audio(request: TTSRequest):
     return _generate_response(request)
 
-@router.get("/generate")
+@router.get("/generate/otto")
 async def generate_audio_get(
     text: str,
     inYsddMode: bool = True,
@@ -59,3 +60,35 @@ async def generate_audio_get(
         reverse=reverse
     )
     return _generate_response(request)
+
+@router.get("/generate/manbo")
+async def tts_proxy(text: str):
+    if not text:
+        raise HTTPException(status_code=400, detail="Missing text")
+
+    target_api = "https://api.milorapart.top/apis/mbAIsc"
+    
+    try:
+        async with httpx.AsyncClient() as client:
+            # 1. Call third-party API
+            resp = await client.get(target_api, params={"text": text})
+            resp.raise_for_status()
+            data = resp.json()
+            
+            if data.get("code") != 200 or not data.get("url"):
+                raise HTTPException(status_code=502, detail=f"Upstream API error: {data}")
+                
+            audio_url = data["url"]
+            
+            # 2. Download audio file
+            audio_resp = await client.get(audio_url)
+            audio_resp.raise_for_status()
+            audio_content = audio_resp.content
+            
+            # 3. Return audio stream
+            return StreamingResponse(io.BytesIO(audio_content), media_type="audio/mpeg")
+            
+    except httpx.HTTPError as e:
+        raise HTTPException(status_code=502, detail=f"Upstream API connection error: {str(e)}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
